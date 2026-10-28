@@ -1,5 +1,7 @@
 # MoversHub Intake
 
+![tests and eval gate](https://github.com/LorikShabanii/movershub-intake/actions/workflows/eval-gate.yml/badge.svg)
+
 A small, production-shaped pipeline that reads incoming **moving requests in Albanian or English**,
 turns them into structured data with a **confidence score per field**, runs **rule-based safety checks before and
 after the model**, asks **clarification questions in the customer's language** when something is missing, and
