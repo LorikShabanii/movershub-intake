@@ -1,0 +1,61 @@
+name: tests and eval gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - name: Unit tests (no API key needed)
+        run: pytest -q
+      - name: Harness smoke run with the offline mock provider
+        run: |
+          python evals/score.py --provider mock
+          python redteam/run_redteam.py --provider mock
+
+  eval-gate:
+    # Runs the real model against the versioned test set and refuses the change if any metric regressed.
+    # Uses whichever provider secret is set: GROQ_API_KEY, else MISTRAL_API_KEY, else ANTHROPIC_API_KEY.
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    env:
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - name: Pick the provider from the available secret
+        run: |
+          if [ -n "$GROQ_API_KEY" ]; then echo "INTAKE_PROVIDER=groq" >> "$GITHUB_ENV";
+          elif [ -n "$MISTRAL_API_KEY" ]; then echo "INTAKE_PROVIDER=mistral" >> "$GITHUB_ENV";
+          elif [ -n "$ANTHROPIC_API_KEY" ]; then echo "INTAKE_PROVIDER=anthropic" >> "$GITHUB_ENV";
+          else echo "No provider secret set; eval gate skipped (unit tests still ran)."; fi
+      - name: Score the test set with the real provider
+        if: env.INTAKE_PROVIDER != ''
+        run: python evals/score.py
+      - name: Gate against baseline
+        if: env.INTAKE_PROVIDER != ''
+        run: python evals/gate.py
+      - name: Red-team invariants
+        if: env.INTAKE_PROVIDER != ''
+        run: python redteam/run_redteam.py
+      - name: Keep the run artefacts
+        if: env.INTAKE_PROVIDER != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: |
+            evals/results/latest.json
+            redteam/report.md
