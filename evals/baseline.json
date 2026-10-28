@@ -1,0 +1,26 @@
+{
+  "testset": "testset_v1.jsonl",
+  "provider": "groq",
+  "model": "openai/gpt-oss-20b",
+  "run_at": "2026-10-28T20:35:00+00:00",
+  "tolerance": {
+    "field_accuracy": 0.0,
+    "required_field_accuracy": 0.0,
+    "decision_accuracy": 0.0,
+    "flag_recall": 0.0,
+    "brier": 0.02,
+    "cost_usd_per_request": 0.1,
+    "latency_p95_ms": 1.0
+  },
+  "summary": {
+    "n_cases": 12,
+    "field_accuracy": 0.9658,
+    "required_field_accuracy": 1.0,
+    "decision_accuracy": 1.0,
+    "flag_recall": 1.0,
+    "brier": 0.0462,
+    "cost_usd_per_request": 0.0,
+    "latency_p50_ms": 18209,
+    "latency_p95_ms": 30032
+  }
+}
