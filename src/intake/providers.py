@@ -100,6 +100,14 @@ def strict_json_schema(model) -> dict:
     return schema
 
 
+def _validate(content: str):
+    """(Extraction, None) on success, (None, short error) on failure."""
+    try:
+        return Extraction.model_validate_json(content), None
+    except Exception as exc:
+        return None, f"{type(exc).__name__}: {str(exc)[:160]}"
+
+
 class GroqProvider:
     """Any OpenAI-compatible chat endpoint; defaults to Groq's free plan.
 
@@ -157,11 +165,20 @@ class GroqProvider:
             response = _with_rate_limit_retry(lambda: self._call(system, user, strict=False))
         choice = response.choices[0]
         content = choice.message.content or ""
-        try:
-            parsed = Extraction.model_validate_json(content)
-        except Exception as exc:  # schema violation -> empty, never a crash, but say why
-            parsed = empty_extraction()
-            note = f"{mode}: invalid JSON ({type(exc).__name__}: {str(exc)[:160]}); head={content[:120]!r}"
+        parsed, err = _validate(content)
+        if parsed is None:
+            # Intermittent: the model occasionally returns off-schema or truncated JSON. One more try
+            # is cheap and almost always clean; if it fails twice, surface it instead of guessing.
+            first = f"{mode}: invalid JSON ({err}); head={content[:120]!r}"
+            response = _with_rate_limit_retry(lambda: self._call(system, user, strict=(mode == "strict")))
+            choice = response.choices[0]
+            content = choice.message.content or ""
+            parsed, err = _validate(content)
+            if parsed is None:
+                parsed = empty_extraction()
+                note = f"retry also failed: {err}; first attempt: {first}"
+            else:
+                note = f"recovered on retry; first attempt: {first}"
         usage = getattr(response, "usage", None)
         return ProviderResponse(
             extraction=parsed,

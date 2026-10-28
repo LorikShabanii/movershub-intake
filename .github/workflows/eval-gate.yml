@@ -51,8 +51,8 @@ jobs:
       - name: Red-team invariants
         if: env.INTAKE_PROVIDER != ''
         run: python redteam/run_redteam.py
-      - name: Keep the run artefacts
-        if: env.INTAKE_PROVIDER != ''
+      - name: Keep the run artefacts (also on failure, so a red gate can be inspected)
+        if: always() && env.INTAKE_PROVIDER != ''
         uses: actions/upload-artifact@v4
         with:
           name: eval-results

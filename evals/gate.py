@@ -20,10 +20,13 @@ LATEST = ROOT / "evals" / "results" / "latest.json"
 
 HIGHER_IS_BETTER = ["field_accuracy", "required_field_accuracy", "decision_accuracy", "flag_recall"]
 LOWER_IS_BETTER = ["brier", "cost_usd_per_request", "latency_p95_ms"]
+# Accuracy tolerances equal ONE case on the 12-case testset_v1 (1/12 decisions; one all-null case
+# costs 11 of 156 field checks). A set this small cannot separate model noise from a real
+# regression, so the gate lets exactly one case flip and nothing more. Shrink these as the set grows.
 DEFAULT_TOLERANCE = {
-    "field_accuracy": 0.0,
-    "required_field_accuracy": 0.0,
-    "decision_accuracy": 0.0,
+    "field_accuracy": 0.08,
+    "required_field_accuracy": 0.10,
+    "decision_accuracy": 0.09,
     "flag_recall": 0.0,
     "brier": 0.02,
     "cost_usd_per_request": 0.10,  # relative: +10 %

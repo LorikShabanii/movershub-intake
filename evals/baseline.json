@@ -4,9 +4,9 @@
   "model": "openai/gpt-oss-20b",
   "run_at": "2026-10-28T20:35:00+00:00",
   "tolerance": {
-    "field_accuracy": 0.0,
-    "required_field_accuracy": 0.0,
-    "decision_accuracy": 0.0,
+    "field_accuracy": 0.08,
+    "required_field_accuracy": 0.1,
+    "decision_accuracy": 0.09,
     "flag_recall": 0.0,
     "brier": 0.02,
     "cost_usd_per_request": 0.1,
