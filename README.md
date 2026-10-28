@@ -6,7 +6,7 @@ after the model**, asks **clarification questions in the customer's language** w
 hands every case to a **person for approval**. An **evaluation harness** with a versioned test set and a **CI gate**
 decides whether a change is allowed to ship.
 
-It is the intake step of MoversHub, a relocation marketplace for the Balkans, cut down to the part that matters
+It is the intake step of [MoversHub](https://github.com/LavdrimXheladini/livritleht), a relocation marketplace for the Balkans, cut down to the part that matters
 for an AI application: how you know the model is right, and what you do when it isn't.
 
 ```
